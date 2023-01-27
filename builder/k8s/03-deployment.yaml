@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+      - name: jenkins
+        image: myjenkins
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: jenkins-nfs-pvc
+        # resources:
+        #   requests:
+        #     cpu: 500Mi
+        #     memory: 512Mi
+        #   limits:
+        #     cpu: 2000Mi
+        #     memory: 1.5Gi
+        livenessProbe:
+          httpGet:
+            path: /login
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5
+
+
+
+        env:
+        - name: NFS_SERVER_IP
+          valueFrom:
+            configMapKeyRef:
+              name: jenkins-cm
+              key: nfs-server-ip
+      volumes:
+      - name: jenkins-nfs-pvc
+        persistentVolumeClaim:
+          claimName: jenkins-nfs-pvc

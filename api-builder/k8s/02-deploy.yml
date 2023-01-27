@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-builder
+  labels:
+    app: api-builder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-builder
+  template:
+    metadata:
+      name: api-builder
+      labels:
+        app: api-builder
+    spec:
+      containers:
+      - name: api-builder
+        image: mynginx
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081
+        env:
+        - name: JOB
+          valueFrom:
+            secretKeyRef:
+              name: nginx-secret
+              key: job
+        - name: USER
+          valueFrom:
+            secretKeyRef:
+              name: nginx-secret
+              key: user
+        - name: TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: nginx-secret
+              key: token
+        - name: BASICAUTH
+          valueFrom:
+            secretKeyRef:
+              name: nginx-secret
+              key: basic-auth
+        - name: BUILDER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nginx-secret
+              key: builder-url
